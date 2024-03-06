@@ -2,7 +2,10 @@ import json
 from datetime import datetime, date, timedelta, time
 
 import requests
+from django.db import transaction
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
+import pytz
+from django.utils import timezone as django_timezone
 
 from app_habits.models import Habit
 from config import settings
@@ -28,11 +31,25 @@ class TgBot:
 def get_schedule(habit: Habit):
     """ Получение периода выполнения задачи """
 
-    schedule, created = IntervalSchedule.objects.get_or_create(
-        every=int(habit.periodic),
-        period=IntervalSchedule.MINUTES,
-        # period=IntervalSchedule.DAYS,
-    )
+    try:
+        # Используем pytz для получения текущей временной зоны
+        current_timezone = pytz.timezone(settings.TIME_ZONE)
+        now = datetime.now(current_timezone)
+
+        # Пытаемся получить существующий период
+        with transaction.atomic():
+            schedule = IntervalSchedule.objects.get(
+                every=int(habit.periodic),
+                period=IntervalSchedule.MINUTES,
+            )
+    except IntervalSchedule.DoesNotExist:
+        # Если не существует, создаем новый
+        with transaction.atomic():
+            schedule = IntervalSchedule.objects.create(
+                every=int(habit.periodic),
+                period=IntervalSchedule.MINUTES,
+            )
+
     return schedule
 
 

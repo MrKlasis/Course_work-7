@@ -2,8 +2,12 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from config import settings
+
 from app_habits.models import Habit
 from app_users.models import User
+
+settings.INSTALLED_APPS += ['django_celery_beat']
 
 
 class HabitGoodTest(APITestCase):
