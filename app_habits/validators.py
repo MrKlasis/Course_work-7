@@ -1,3 +1,5 @@
+from datetime import timezone
+
 from rest_framework import serializers
 
 
@@ -49,3 +51,18 @@ class FieldsIsNoneValidator:
                 if not self.message:
                     self.message = f'Запрещено заполнять поле "{field}""'
                 raise serializers.ValidationError(self.message)
+
+
+class PeriodicityValidator:
+    def __init__(self, field_name):
+        self.field_name = field_name
+
+    def __call__(self, value):
+        periodicity = value.get(self.field_name)
+        last_completed = value.get('last_completed')  # предположим, что у вас есть поле 'last_completed'
+
+        if periodicity == 'DAY_7' and last_completed is not None:
+            # Проверяем, прошло ли с последнего выполнения более 7 дней
+            days_difference = (timezone.now() - last_completed).days
+            if days_difference < 7:
+                raise serializers.ValidationError(f"Привычку можно выполнять не реже, чем 1 раз в 7 дней.")

@@ -16,11 +16,12 @@ class Habit(models.Model):
     location = models.CharField(max_length=50, verbose_name='Место', **NULL)
     is_nice = models.BooleanField(default=False, verbose_name='Признак приятной привычки')
     related = models.ForeignKey('self', on_delete=models.SET_NULL, verbose_name='Привязка', **NULL)
-    periodic = models.CharField(default=Periodic.DAY_1, max_length=2, choices=Periodic.choices,
-                                verbose_name='Периодичность', **NULL)
+    periodic = models.PositiveIntegerField(default=Periodic.DAY_1, choices=Periodic.choices,
+                                           verbose_name='Периодичность', **NULL)
     reward = models.CharField(max_length=50, verbose_name="Вознаграждение", **NULL)
     time_to_complete = models.PositiveIntegerField(default=60, verbose_name="Время на выполнение")
     is_public = models.BooleanField(default=False, verbose_name="Признак публичности")
+    last_completed = models.DateTimeField(null=True, blank=True, verbose_name='Время последнего выполнения')
 
     def __str__(self):
         return f'{self.task}'
